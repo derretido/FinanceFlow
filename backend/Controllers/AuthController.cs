@@ -1,0 +1,69 @@
+using FinancasApi.Data;
+using FinancasApi.DTOs;
+using FinancasApi.Models;
+using FinancasApi.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace FinancasApi.Controllers;
+
+[ApiController]
+[Route("api/auth")]
+public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
+{
+    [HttpPost("register")]
+    public async Task<ActionResult<AuthResponse>> Register(RegisterRequest req)
+    {
+        if (await db.Users.AnyAsync(u => u.Email == req.Email))
+            return Conflict(new { message = "E-mail já cadastrado." });
+
+        var user = new User
+        {
+            Name         = req.Name,
+            Email        = req.Email.ToLowerInvariant(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.Password)
+        };
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        return Ok(BuildAuthResponse(user));
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest req)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email.ToLowerInvariant());
+        if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
+            return Unauthorized(new { message = "E-mail ou senha incorretos." });
+
+        return Ok(BuildAuthResponse(user));
+    }
+
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest req)
+    {
+        var stored = await db.RefreshTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Token == req.RefreshToken);
+
+        if (stored == null || stored.IsRevoked || stored.ExpiresAt < DateTime.UtcNow)
+            return Unauthorized(new { message = "Refresh token inválido ou expirado." });
+
+        stored.IsRevoked = true;
+        await db.SaveChangesAsync();
+
+        return Ok(BuildAuthResponse(stored.User));
+    }
+
+    private AuthResponse BuildAuthResponse(User user)
+    {
+        var (accessToken, expires) = jwt.GenerateAccessToken(user);
+        var refresh = jwt.GenerateRefreshToken(user.Id);
+        db.RefreshTokens.Add(refresh);
+        db.SaveChanges();
+
+        return new AuthResponse(
+            accessToken, refresh.Token, expires,
+            new UserDto(user.Id, user.Name, user.Email));
+    }
+}

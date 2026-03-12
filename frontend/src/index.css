@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { background: #0f0f0f; color: #f0ece4; font-family: 'DM Sans', sans-serif; }
+
+.font-serif { font-family: 'DM Serif Display', serif; }
+.font-mono  { font-family: 'DM Mono', monospace; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+/* Input */
+input, select, textarea {
+  background: #222;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  color: #f0ece4;
+  padding: 8px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: #e8d5a3; }
+input::placeholder { color: #555; }
+
+/* Topbar color line */
+.topbar-line { height: 2px; width: 100%; }
+
+/* Progress bar */
+.progress-track {
+  background: #222;
+  border-radius: 99px;
+  overflow: hidden;
+  height: 8px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
