@@ -1,23 +1,22 @@
 # Estágio de Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copiar arquivos de projeto e restaurar dependências
-COPY *.csproj ./
-RUN dotnet restore
+# Copia o projeto e restaura (Nome deve ser igual ao seu arquivo .csproj)
+COPY ["FinancasApi.csproj", "./"]
+RUN dotnet restore "FinancasApi.csproj"
 
-# Copiar o restante e publicar
-COPY . ./
-RUN dotnet publish -c Release -o out
+# Copia o restante dos arquivos e compila
+COPY . .
+RUN dotnet publish "FinancasApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Estágio Final (Runtime)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /app/publish .
 
-# Porta padrão do Render/Heroku/Railway costuma ser variável
-# Mas o .NET por padrão ouve na 8080 no Docker
-EXPOSE 8080
+# Garante que a porta seja a 8080 (Padrão Render)
 ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "FinancasApi.dll"]
