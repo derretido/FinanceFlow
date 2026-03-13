@@ -70,8 +70,21 @@ var app = builder.Build();
 // Auto-migrate on startup
 using (var scope = app.Services.CreateScope())
 {
-    var dbCtx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbCtx.Database.MigrateAsync();
+    var services = scope.ServiceProvider;
+    try 
+    {
+        var dbCtx = services.GetRequiredService<AppDbContext>();
+        Console.WriteLine("--- Tentando conectar ao banco e rodar migrações... ---");
+        await dbCtx.Database.MigrateAsync();
+        Console.WriteLine("--- Migrações executadas com sucesso! ---");
+    }
+    catch (Exception ex) 
+    {
+        Console.WriteLine("!!! ERRO NAS MIGRAÇÕES MAS O APP VAI SUBIR !!!");
+        Console.WriteLine($"Erro: {ex.Message}");
+        if (ex.InnerException != null) 
+            Console.WriteLine($"Detalhe: {ex.InnerException.Message}");
+    }
 }
 
 app.UseSwagger();
