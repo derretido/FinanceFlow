@@ -15,18 +15,19 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 // Auth
 var jwtSection = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSection["SecretKey"]!;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
         opt.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidateAudience         = true,
-            ValidateLifetime         = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer               = jwtSection["Issuer"],
-            ValidAudience             = jwtSection["Audience"],
-            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+            ValidIssuer = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
         };
     });
 
@@ -40,15 +41,24 @@ builder.Services.AddScoped<AlertService>();
 builder.Services.AddControllers()
     .AddJsonOptions(opt =>
     {
-        opt.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        opt.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
     });
 
-// --- AJUSTE DE CORS PARA DESTRAVAR O LOGIN ---
-builder.Services.AddCors(opt => {
-    opt.AddPolicy("Livre", policy => {
-        policy.AllowAnyOrigin() 
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://finance-flow-beryl-eight.vercel.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -57,15 +67,29 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Finanças API", Version = "v1" });
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = ParameterLocation.Header, Type = SecuritySchemeType.Http,
-        Scheme = "Bearer", BearerFormat = "JWT"
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {{
-        new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }},
-        []
-    }});
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 var app = builder.Build();
@@ -74,14 +98,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try 
+
+    try
     {
         var dbCtx = services.GetRequiredService<AppDbContext>();
         Console.WriteLine("--- Tentando conectar ao banco e rodar migrações... ---");
         await dbCtx.Database.MigrateAsync();
         Console.WriteLine("--- Migrações executadas com sucesso! ---");
     }
-    catch (Exception ex) 
+    catch (Exception ex)
     {
         Console.WriteLine("!!! ERRO NAS MIGRAÇÕES MAS O APP VAI SUBIR !!!");
         Console.WriteLine($"Erro: {ex.Message}");
@@ -91,11 +116,11 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// --- ORDEM CRÍTICA: UseCors antes de Auth ---
-app.UseCors("Livre");
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
