@@ -9,13 +9,9 @@ Stack: **.NET 9 (C#) • PostgreSQL • React + Vite • JWT Auth**
 ## 🌐 Acesso à aplicação
 
 **Aplicação**
-https://financeflow-production-d4ae.up.railway.app
-
-**API**
-https://financeflow-production-d4ae.up.railway.app/api
+https://finance-flow-beryl-eight.vercel.app
 
 **Swagger**
-
 https://financeflow-production-d4ae.up.railway.app/swagger
 
 
