@@ -46,8 +46,8 @@ builder.Services.AddControllers()
 // CORS
 builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
     p.WithOrigins("http://localhost:5173", "http://localhost:3000")
-     .AllowAnyHeader()
-     .AllowAnyMethod()));
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
