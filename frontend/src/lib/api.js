@@ -1,49 +1,63 @@
 import axios from 'axios'
 
-// Pega a URL da Render na Vercel, ou usa o localhost se estiver no seu PC
+// Produção: pega da Vercel
+// Local: usa sua API local
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-const api = axios.create({ 
-  baseURL: API_URL 
+const api = axios.create({
+  baseURL: API_URL,
 })
 
-// Attach access token
-api.interceptors.request.use(cfg => {
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken')
-  if (token) cfg.headers.Authorization = `Bearer ${token}`
-  return cfg
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+
+  return config
 })
 
-// Auto-refresh on 401
 let refreshing = false
+
 api.interceptors.response.use(
-  res => res,
-  async err => {
-    const orig = err.config
-    // Importante: usamos a URL completa para o refresh também
-    if (err.response?.status === 401 && !orig._retry && !refreshing) {
-      orig._retry = true
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !refreshing
+    ) {
+      originalRequest._retry = true
       refreshing = true
+
       try {
-        const rt = localStorage.getItem('refreshToken')
-        if (!rt) throw new Error('no refresh token')
-        
-        // Chamada direta via axios para evitar loop infinito com o interceptor
-        const { data } = await axios.post(`${API_URL}/auth/refresh`, { refreshToken: rt })
-        
+        const refreshToken = localStorage.getItem('refreshToken')
+        if (!refreshToken) throw new Error('No refresh token')
+
+        const { data } = await axios.post(`${API_URL}/auth/refresh`, {
+          refreshToken,
+        })
+
         localStorage.setItem('accessToken', data.accessToken)
         localStorage.setItem('refreshToken', data.refreshToken)
-        
-        orig.headers.Authorization = `Bearer ${data.accessToken}`
-        return api(orig)
-      } catch {
-        localStorage.clear()
+
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
+
+        return api(originalRequest)
+      } catch (refreshError) {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
         window.location.href = '/login'
+        return Promise.reject(refreshError)
       } finally {
         refreshing = false
       }
     }
-    return Promise.reject(err)
+
+    return Promise.reject(error)
   }
 )
 

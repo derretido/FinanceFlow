@@ -1,178 +1,119 @@
-# 💰 Controle Financeiro Pessoal
+# 💰 FinanceFlow — Controle Financeiro Pessoal
 
-Stack: **.NET 9** (C#) + **PostgreSQL** + **React + Vite** + **JWT Auth**
+Aplicação web para **gestão financeira pessoal**, permitindo controlar gastos, investimentos, metas e orçamento mensal com dashboards interativos.
+
+Stack: **.NET 9 (C#) • PostgreSQL • React + Vite • JWT Auth**
 
 ---
 
-## 📁 Estrutura
+## 🌐 Acesso à aplicação
 
-```
+**Aplicação**
+https://financeflow-production-d4ae.up.railway.app
+
+**API**
+https://financeflow-production-d4ae.up.railway.app/api
+
+**Swagger**
+
+https://financeflow-production-d4ae.up.railway.app/swagger
+
+
+---
+
+## 🚀 Tecnologias
+
+**Backend**
+- .NET 9
+- ASP.NET Core Web API
+- Entity Framework Core
+- PostgreSQL
+- JWT Authentication
+
+**Frontend**
+- React
+- Vite
+- Axios
+- Recharts
+
+---
+
+## 📊 Funcionalidades
+
+- Registro e login com **JWT**
+- Controle de **salário mensal**
+- CRUD de **gastos por categoria**
+- Controle de **investimentos**
+- **Metas financeiras** com progresso
+- **Alertas automáticos** de orçamento
+- **Dashboard com gráficos** financeiros
+
+---
+
+## 🏗️ Estrutura do Projeto
 financas/
-├── backend/          # ASP.NET Core Web API
-│   ├── Controllers/
-│   ├── Data/         # AppDbContext (EF Core)
-│   ├── DTOs/
-│   ├── Models/
-│   ├── Services/     # JwtService, AlertService
-│   └── Program.cs
-└── frontend/         # React + Vite
-    └── src/
-        ├── components/
-        ├── contexts/
-        ├── lib/      # axios client
-        └── pages/
-```
+├── backend/
+│ ├── Controllers
+│ ├── Data
+│ ├── DTOs
+│ ├── Models
+│ ├── Services
+│ └── Program.cs
+│
+└── frontend/
+└── src/
+├── components
+├── contexts
+├── lib
+└── pages
+
 
 ---
 
-## ⚙️ Pré-requisitos
+## 🔌 Principais Endpoints
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- [Node.js 20+](https://nodejs.org)
-- [PostgreSQL 15+](https://www.postgresql.org/download/)
+**Auth**
+POST /api/auth/register
+POST /api/auth/login
 
----
 
-## 🚀 Setup do Backend
-
-### 1. Criar banco de dados
-
-```sql
-CREATE DATABASE financas_db;
-```
-
-### 2. Configurar connection string
-
-Edite `backend/appsettings.json`:
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=financas_db;Username=postgres;Password=SUA_SENHA"
-  },
-  "JwtSettings": {
-    "SecretKey": "UMA_CHAVE_SECRETA_LONGA_MINIMO_32_CARACTERES_AQUI"
-  }
-}
-```
-
-### 3. Instalar EF Core CLI e criar migration
-
-```bash
-cd backend
-
-# Instalar ferramenta EF (apenas na primeira vez)
-dotnet tool install --global dotnet-ef
-
-# Criar a migration inicial
-dotnet ef migrations add InitialCreate
-
-# Aplicar no banco (ou deixar o app fazer automaticamente no startup)
-dotnet ef database update
-```
-
-### 4. Rodar o backend
-
-```bash
-dotnet run
-```
-
-API disponível em: `http://localhost:5000`  
-Swagger UI: `http://localhost:5000/swagger`
-
----
-
-## 🎨 Setup do Frontend
-
-```bash
-cd frontend
-
-# Instalar dependências
-npm install
-
-# Rodar em modo desenvolvimento
-npm run dev
-```
-
-App disponível em: `http://localhost:5173`
-
----
-
-## 🔧 Funcionalidades
-
-| Feature | Descrição |
-|---|---|
-| **Auth JWT** | Registro, login, refresh token automático |
-| **Orçamento mensal** | Salário configurável por mês |
-| **Gastos** | CRUD com 12 categorias + categorias personalizadas |
-| **Investimentos** | Aportes mensais por tipo (Renda Fixa, Variável, Crypto...) |
-| **Metas** | Progresso visual com depósitos |
-| **Alertas** | Automáticos quando gastos passam de 80% do salário |
-| **Dashboard** | Gráficos de área, pizza e barras (últimos 6 meses) |
-| **Histórico** | Tendência mensal com Recharts |
-
----
-
-## 🔌 Endpoints principais
-
-### Auth
-```
-POST /api/auth/register   { name, email, password }
-POST /api/auth/login      { email, password }
-POST /api/auth/refresh    { refreshToken }
-```
-
-### Orçamento
-```
-GET  /api/budgets/{year}/{month}
-PUT  /api/budgets         { year, month, salary }
-```
-
-### Gastos
-```
-GET    /api/expenses?year=&month=&categoryId=
-POST   /api/expenses
-PUT    /api/expenses/{id}
+**Gastos**
+GET /api/expenses
+POST /api/expenses
+PUT /api/expenses/{id}
 DELETE /api/expenses/{id}
-```
 
-### Investimentos
-```
-GET    /api/investments?year=&month=
-POST   /api/investments
-DELETE /api/investments/{id}
-```
 
-### Metas
-```
-GET    /api/goals
-POST   /api/goals
-POST   /api/goals/{id}/deposit   { amount }
-DELETE /api/goals/{id}
-```
+**Metas**
+GET /api/goals
+POST /api/goals
 
-### Alertas
-```
-GET    /api/alerts?unreadOnly=true
-PATCH  /api/alerts/{id}/read
-PATCH  /api/alerts/read-all
-```
 
-### Dashboard
-```
+**Dashboard**
 GET /api/dashboard/{year}/{month}
-```
+
 
 ---
 
-## 🛠️ Produção
+## 🧪 Rodar localmente
 
-```bash
-# Backend
-dotnet publish -c Release -o ./publish
+Backend
+cd backend
+dotnet run
 
-# Frontend
-cd frontend && npm run build
-# Servir a pasta /dist com nginx ou similar
-```
 
-Configure um reverse proxy nginx apontando `/api` para o backend e `/` para o frontend buildado.
+## Frontend
+
+cd frontend
+npm install
+npm run dev
+
+
+---
+
+## 📈 Melhorias futuras
+
+- Open Banking
+- Exportação de relatórios
+- Login social (Google/GitHub)
+- Versão mobile
