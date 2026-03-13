@@ -68,11 +68,11 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Auto-migrate on startup
-using (var scope = app.Services.CreateScope())
-{
-    var dbCtx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbCtx.Database.MigrateAsync();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbCtx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    await dbCtx.Database.MigrateAsync();
+//}
 
 app.UseSwagger();
 app.UseSwaggerUI();
