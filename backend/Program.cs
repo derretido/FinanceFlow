@@ -24,8 +24,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience         = true,
             ValidateLifetime         = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer              = jwtSection["Issuer"],
-            ValidAudience            = jwtSection["Audience"],
+            ValidIssuer               = jwtSection["Issuer"],
+            ValidAudience             = jwtSection["Audience"],
             IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
         };
     });
@@ -43,11 +43,15 @@ builder.Services.AddControllers()
         opt.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-// CORS
+// --- AJUSTE DE CORS AQUI ---
 builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
-    p.WithOrigins("http://localhost:5173", "http://localhost:3000")
-        .AllowAnyHeader()
-        .AllowAnyMethod()));
+    p.WithOrigins(
+        "http://localhost:5173", 
+        "http://localhost:3000", 
+        "https://finance-flow-beryl-eight.vercel.app" // Sua URL da Vercel
+    )
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -67,7 +71,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Auto-migrate on startup
+// Auto-migrate on startup (Com Try/Catch para não travar na Render)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -82,14 +86,15 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine("!!! ERRO NAS MIGRAÇÕES MAS O APP VAI SUBIR !!!");
         Console.WriteLine($"Erro: {ex.Message}");
-        if (ex.InnerException != null) 
-            Console.WriteLine($"Detalhe: {ex.InnerException.Message}");
     }
 }
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+// O UseCors deve vir antes do Authentication/Authorization
 app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
