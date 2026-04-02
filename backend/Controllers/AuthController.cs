@@ -87,7 +87,7 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
 
     private AuthResponse BuildAuthResponse(User user)
     {
-        // O erro 500 costuma acontecer aqui se o JWT não estiver configurado
+        // Gera os tokens
         var (accessToken, expires) = jwt.GenerateAccessToken(user);
         var refresh = jwt.GenerateRefreshToken(user.Id);
         

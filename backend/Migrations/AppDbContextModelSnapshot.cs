@@ -23,40 +23,32 @@ namespace FinancasApi.Migrations
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("FinancasApi.Models.Alert", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+            {
+                b.Property<int>("Id")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Alerts");
-                });
+                b.Property<DateTime>("CreatedAt")
+        .HasColumnType("timestamp with time zone");
+                b.Property<bool>("IsRead")
+            .HasColumnType("boolean");
+                b.Property<string>("Message")
+            .IsRequired()
+            .HasColumnType("text");
+                b.Property<string>("Title")
+            .IsRequired()
+            .HasColumnType("text");
+                b.Property<string>("Type")
+            .IsRequired()
+            .HasColumnType("text");
+                b.Property<int>("UserId")
+            .HasColumnType("integer");
+                b.HasKey("Id");
+                b.HasIndex("UserId");
+                b.ToTable("Alerts");
+            });
 
             modelBuilder.Entity("FinancasApi.Models.Category", b =>
                 {

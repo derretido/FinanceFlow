@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
-
 namespace FinancasApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
@@ -22,75 +21,53 @@ namespace FinancasApi.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
             modelBuilder.Entity("FinancasApi.Models.Alert", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
-
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.HasIndex("UserId");
-
                     b.ToTable("Alerts");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<string>("Icon")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<int?>("UserId")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.ToTable("Categories");
-
                     b.HasData(
                         new
                         {
@@ -189,212 +166,146 @@ namespace FinancasApi.Migrations
                             Name = "Outros"
                         });
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Expense", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,2)");
-
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<bool>("IsRecurring")
                         .HasColumnType("boolean");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.HasIndex("CategoryId");
-
                     b.HasIndex("UserId");
-
                     b.ToTable("Expenses");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Goal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
                     b.Property<decimal>("CurrentAmount")
                         .HasColumnType("numeric(18,2)");
-
                     b.Property<DateOnly?>("Deadline")
                         .HasColumnType("date");
-
                     b.Property<string>("Icon")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("boolean");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<decimal>("TargetAmount")
                         .HasColumnType("numeric(18,2)");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.HasIndex("UserId");
-
                     b.ToTable("Goals");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Investment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric(18,2)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.HasIndex("UserId");
-
                     b.ToTable("Investments");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.MonthlyBudget", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("Month")
                         .HasColumnType("integer");
-
                     b.Property<decimal>("Salary")
                         .HasColumnType("numeric(18,2)");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
-
                     b.Property<int>("Year")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.HasIndex("UserId", "Year", "Month")
                         .IsUnique();
-
                     b.ToTable("MonthlyBudgets");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
-
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
-
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
-
                     b.HasKey("Id");
-
                     b.HasIndex("UserId");
-
                     b.ToTable("RefreshTokens");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<decimal>("Salary")
                         .HasColumnType("numeric(18,2)");
-
                     b.HasKey("Id");
-
                     b.HasIndex("Email")
                         .IsUnique();
-
                     b.ToTable("Users");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Alert", b =>
                 {
                     b.HasOne("FinancasApi.Models.User", "User")
@@ -402,10 +313,8 @@ namespace FinancasApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("User");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Expense", b =>
                 {
                     b.HasOne("FinancasApi.Models.Category", "Category")
@@ -413,18 +322,14 @@ namespace FinancasApi.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
                     b.HasOne("FinancasApi.Models.User", "User")
                         .WithMany("Expenses")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("Category");
-
                     b.Navigation("User");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Goal", b =>
                 {
                     b.HasOne("FinancasApi.Models.User", "User")
@@ -432,10 +337,8 @@ namespace FinancasApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("User");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Investment", b =>
                 {
                     b.HasOne("FinancasApi.Models.User", "User")
@@ -443,10 +346,8 @@ namespace FinancasApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("User");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.MonthlyBudget", b =>
                 {
                     b.HasOne("FinancasApi.Models.User", "User")
@@ -454,10 +355,8 @@ namespace FinancasApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("User");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.RefreshToken", b =>
                 {
                     b.HasOne("FinancasApi.Models.User", "User")
@@ -465,25 +364,18 @@ namespace FinancasApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("User");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.Category", b =>
                 {
                     b.Navigation("Expenses");
                 });
-
             modelBuilder.Entity("FinancasApi.Models.User", b =>
                 {
                     b.Navigation("Budgets");
-
                     b.Navigation("Expenses");
-
                     b.Navigation("Goals");
-
                     b.Navigation("Investments");
-
                     b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618

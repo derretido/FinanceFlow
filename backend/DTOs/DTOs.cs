@@ -1,6 +1,4 @@
 namespace FinancasApi.DTOs;
-
-// ── AUTH ──────────────────────────────────────────────
 public record RegisterRequest(string Name, string Email, string Password);
 public record LoginRequest(string Email, string Password);
 public record RefreshRequest(string RefreshToken);
@@ -13,7 +11,7 @@ public record AuthResponse(
 
 public record UserDto(int Id, string Name, string Email);
 
-// ── BUDGET ────────────────────────────────────────────
+
 public record UpsertBudgetRequest(int Year, int Month, decimal Salary);
 
 public record BudgetDto(
@@ -21,11 +19,11 @@ public record BudgetDto(
     decimal TotalExpenses, decimal TotalInvestments, decimal Balance,
     decimal SpendingPercent);
 
-// ── CATEGORIES ───────────────────────────────────────
+
 public record CategoryDto(int Id, string Name, string Icon, string Color, bool IsSystem);
 public record CreateCategoryRequest(string Name, string Icon, string Color);
 
-// ── EXPENSES ─────────────────────────────────────────
+
 public record CreateExpenseRequest(
     string Description,
     decimal Amount,
@@ -49,13 +47,13 @@ public record ExpenseDto(
     bool IsRecurring,
     DateTime CreatedAt);
 
-// ── INVESTMENTS ───────────────────────────────────────
+
 public record CreateInvestmentRequest(string Name, string Type, decimal Amount, DateOnly Date);
 public record UpdateInvestmentRequest(string Name, string Type, decimal Amount, DateOnly Date);
 
 public record InvestmentDto(int Id, string Name, string Type, decimal Amount, DateOnly Date, DateTime CreatedAt);
 
-// ── GOALS ─────────────────────────────────────────────
+
 public record CreateGoalRequest(string Name, string Icon, decimal TargetAmount, DateOnly? Deadline);
 public record UpdateGoalRequest(string Name, string Icon, decimal TargetAmount, DateOnly? Deadline);
 public record AddToGoalRequest(decimal Amount);
@@ -66,10 +64,10 @@ public record GoalDto(
     DateOnly? Deadline, bool IsCompleted,
     decimal ProgressPercent, DateTime CreatedAt);
 
-// ── ALERTS ────────────────────────────────────────────
+
 public record AlertDto(int Id, string Title, string Message, string Type, bool IsRead, DateTime CreatedAt);
 
-// ── DASHBOARD ─────────────────────────────────────────
+
 public record DashboardDto(
     BudgetDto Budget,
     IEnumerable<CategorySummaryDto> CategorySummaries,

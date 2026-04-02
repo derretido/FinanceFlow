@@ -16,35 +16,35 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        // User
+        //usuarios 
         mb.Entity<User>(e => {
             e.HasIndex(u => u.Email).IsUnique();
             e.Property(u => u.Salary).HasColumnType("numeric(18,2)");
         });
 
-        // MonthlyBudget — unique per user/year/month
+        // Mes orçamento 
         mb.Entity<MonthlyBudget>(e => {
             e.HasIndex(b => new { b.UserId, b.Year, b.Month }).IsUnique();
             e.Property(b => b.Salary).HasColumnType("numeric(18,2)");
         });
 
-        // Expense
+        // Despesa 
         mb.Entity<Expense>(e => {
             e.Property(x => x.Amount).HasColumnType("numeric(18,2)");
             e.HasOne(x => x.Category).WithMany(c => c.Expenses).OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Investment
+        // Investimento 
         mb.Entity<Investment>(e =>
             e.Property(x => x.Amount).HasColumnType("numeric(18,2)"));
 
-        // Goal
+        //  Meta 
         mb.Entity<Goal>(e => {
             e.Property(x => x.TargetAmount).HasColumnType("numeric(18,2)");
             e.Property(x => x.CurrentAmount).HasColumnType("numeric(18,2)");
         });
 
-        // Seed system categories
+        // Categorias - dados iniciais
         mb.Entity<Category>().HasData(
             new Category { Id = 1,  Name = "Moradia",         Icon = "🏠", Color = "#60a5fa", IsSystem = true },
             new Category { Id = 2,  Name = "Alimentação",     Icon = "🛒", Color = "#34d399", IsSystem = true },

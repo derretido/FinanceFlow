@@ -20,7 +20,7 @@ public class AlertService(AppDbContext db, IConfiguration config)
 
         var pct = totalExp / budget.Salary * 100;
 
-        // Spending threshold alert
+        // Alerta de gastos elevados ou orçamento estourado
         if (pct >= _threshold)
         {
             var level = pct >= 100 ? "danger" : "warning";
@@ -38,7 +38,7 @@ public class AlertService(AppDbContext db, IConfiguration config)
                 db.Alerts.Add(new Alert { UserId = userId, Title = title, Message = msg, Type = level });
         }
 
-        // Category overspend alerts — if any single category exceeds 40% of salary
+        // Alerta de gastos elevados por categoria — se qualquer categoria exceder 40% do salário
         var catTotals = await db.Expenses
             .Where(e => e.UserId == userId && e.Date.Year == year && e.Date.Month == month)
             .GroupBy(e => new { e.CategoryId, e.Category.Name, e.Category.Icon })
@@ -64,7 +64,7 @@ public class AlertService(AppDbContext db, IConfiguration config)
 
     public async Task CheckGoalAlerts(int userId, int goalId)
     {
-        var goal = await db.Goals.FindAsync(goalId);
+        var goal = await db.Goals.FindAsync(goalId); //
         if (goal == null) return;
 
         var pct = goal.CurrentAmount / goal.TargetAmount * 100;

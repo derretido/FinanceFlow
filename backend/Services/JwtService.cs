@@ -6,7 +6,7 @@ using FinancasApi.Models;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FinancasApi.Services;
-
+//JWT geração dos tokens 
 public class JwtService(IConfiguration config)
 {
     private readonly string _secret    = config["JwtSettings:SecretKey"]!;
