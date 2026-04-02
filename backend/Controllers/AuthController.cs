@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinancasApi.Controllers;
 
+
+// Controlador de autenticação, com registro, login e refresh token
 [ApiController]
 [Route("api/auth")]
 public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
@@ -14,15 +16,15 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest req)
     {
-        try 
+        try
         {
             if (await db.Users.AnyAsync(u => u.Email == req.Email))
                 return Conflict(new { message = "E-mail já cadastrado." });
 
             var user = new User
             {
-                Name         = req.Name,
-                Email        = req.Email.ToLowerInvariant(),
+                Name = req.Name,
+                Email = req.Email.ToLowerInvariant(),
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.Password)
             };
 
@@ -33,10 +35,11 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                message = "Erro ao registrar usuário", 
+            return StatusCode(500, new
+            {
+                message = "Erro ao registrar usuário",
                 error = ex.Message,
-                details = ex.InnerException?.Message 
+                details = ex.InnerException?.Message
             });
         }
     }
@@ -44,10 +47,10 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest req)
     {
-        try 
+        try
         {
             var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email.ToLowerInvariant());
-            
+
             if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
                 return Unauthorized(new { message = "E-mail ou senha incorretos." });
 
@@ -55,9 +58,10 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                message = "Erro ao realizar login", 
-                error = ex.Message 
+            return StatusCode(500, new
+            {
+                message = "Erro ao realizar login",
+                error = ex.Message
             });
         }
     }
@@ -65,7 +69,7 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest req)
     {
-        try 
+        try
         {
             var stored = await db.RefreshTokens
                 .Include(t => t.User)
@@ -90,13 +94,13 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
         // Gera os tokens
         var (accessToken, expires) = jwt.GenerateAccessToken(user);
         var refresh = jwt.GenerateRefreshToken(user.Id);
-        
+
         db.RefreshTokens.Add(refresh);
         db.SaveChanges();
 
         return new AuthResponse(
-            accessToken, 
-            refresh.Token, 
+            accessToken,
+            refresh.Token,
             expires,
             new UserDto(user.Id, user.Name, user.Email));
     }

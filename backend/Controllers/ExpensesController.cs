@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinancasApi.Controllers;
 
+// Criação das despesas, com relação com categorias e alertas
 [Route("api/expenses")]
 public class ExpensesController(AppDbContext db, AlertService alerts) : BaseController
 {
@@ -18,8 +19,8 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
             .Include(e => e.Category)
             .Where(e => e.UserId == UserId);
 
-        if (year.HasValue)     q = q.Where(e => e.Date.Year == year.Value);
-        if (month.HasValue)    q = q.Where(e => e.Date.Month == month.Value);
+        if (year.HasValue) q = q.Where(e => e.Date.Year == year.Value);
+        if (month.HasValue) q = q.Where(e => e.Date.Month == month.Value);
         if (categoryId.HasValue) q = q.Where(e => e.CategoryId == categoryId.Value);
 
         var list = await q.OrderByDescending(e => e.Date).ThenByDescending(e => e.CreatedAt).ToListAsync();
@@ -43,11 +44,11 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
         var expense = new Expense
         {
             Description = req.Description,
-            Amount      = req.Amount,
-            Date        = req.Date,
-            CategoryId  = req.CategoryId,
+            Amount = req.Amount,
+            Date = req.Date,
+            CategoryId = req.CategoryId,
             IsRecurring = req.IsRecurring,
-            UserId      = UserId
+            UserId = UserId
         };
         db.Expenses.Add(expense);
         await db.SaveChangesAsync();
@@ -65,9 +66,9 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
         if (expense == null) return NotFound();
 
         expense.Description = req.Description;
-        expense.Amount      = req.Amount;
-        expense.Date        = req.Date;
-        expense.CategoryId  = req.CategoryId;
+        expense.Amount = req.Amount;
+        expense.Date = req.Date;
+        expense.CategoryId = req.CategoryId;
         expense.IsRecurring = req.IsRecurring;
         await db.SaveChangesAsync();
         await alerts.CheckAndCreateAlertsAsync(UserId, req.Date.Year, req.Date.Month);

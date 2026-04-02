@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinancasApi.Controllers;
 
+
+// Criação do orçamento mensal, com cálculo do saldo e porcentagem gasto
 [Route("api/budgets")]
 public class BudgetsController(AppDbContext db) : BaseController
 {
@@ -37,7 +39,7 @@ public class BudgetsController(AppDbContext db) : BaseController
 
     private async Task<BudgetDto> BuildDto(MonthlyBudget? b, int year, int month)
     {
-        var salary  = b?.Salary ?? 0;
+        var salary = b?.Salary ?? 0;
         var expenses = await db.Expenses
             .Where(e => e.UserId == UserId && e.Date.Year == year && e.Date.Month == month)
             .SumAsync(e => (decimal?)e.Amount) ?? 0;
@@ -45,7 +47,7 @@ public class BudgetsController(AppDbContext db) : BaseController
             .Where(i => i.UserId == UserId && i.Date.Year == year && i.Date.Month == month)
             .SumAsync(i => (decimal?)i.Amount) ?? 0;
         var balance = salary - expenses - investments;
-        var pct     = salary > 0 ? Math.Round(expenses / salary * 100, 1) : 0;
+        var pct = salary > 0 ? Math.Round(expenses / salary * 100, 1) : 0;
 
         return new BudgetDto(b?.Id ?? 0, year, month, salary, expenses, investments, balance, pct);
     }

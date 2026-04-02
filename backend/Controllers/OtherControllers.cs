@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinancasApi.Controllers;
 
-
+// Criaçãp das categorias, investimentos, metas, alertas e dashboard
 [Route("api/categories")]
 public class CategoriesController(AppDbContext db) : BaseController
 {
@@ -39,7 +39,7 @@ public class InvestmentsController(AppDbContext db) : BaseController
     public async Task<ActionResult<IEnumerable<InvestmentDto>>> List([FromQuery] int? year, [FromQuery] int? month)
     {
         var q = db.Investments.Where(i => i.UserId == UserId);
-        if (year.HasValue)  q = q.Where(i => i.Date.Year == year.Value);
+        if (year.HasValue) q = q.Where(i => i.Date.Year == year.Value);
         if (month.HasValue) q = q.Where(i => i.Date.Month == month.Value);
         var list = await q.OrderByDescending(i => i.Date).ToListAsync();
         return Ok(list.Select(ToDto));
@@ -191,8 +191,8 @@ public class DashboardController(AppDbContext db) : BaseController
 
         var totalExp = expenses.Sum(e => e.Amount);
         var totalInv = investments.Sum(i => i.Amount);
-        var balance  = salary - totalExp - totalInv;
-        var pct      = salary > 0 ? Math.Round(totalExp / salary * 100, 1) : 0;
+        var balance = salary - totalExp - totalInv;
+        var pct = salary > 0 ? Math.Round(totalExp / salary * 100, 1) : 0;
 
         var budgetDto = new BudgetDto(budget?.Id ?? 0, year, month, salary, totalExp, totalInv, balance, pct);
 
@@ -207,10 +207,10 @@ public class DashboardController(AppDbContext db) : BaseController
 
 
         var trend = new List<MonthlyTrendDto>();
-        var months = new[] { "Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez" };
+        var months = new[] { "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez" };
         for (int i = 5; i >= 0; i--)
         {
-            var d  = new DateTime(year, month, 1).AddMonths(-i);
+            var d = new DateTime(year, month, 1).AddMonths(-i);
             var b2 = await db.MonthlyBudgets.FirstOrDefaultAsync(b => b.UserId == UserId && b.Year == d.Year && b.Month == d.Month);
             var e2 = await db.Expenses.Where(e => e.UserId == UserId && e.Date.Year == d.Year && e.Date.Month == d.Month).SumAsync(e => (decimal?)e.Amount) ?? 0;
             var v2 = await db.Investments.Where(v => v.UserId == UserId && v.Date.Year == d.Year && v.Date.Month == d.Month).SumAsync(v => (decimal?)v.Amount) ?? 0;
