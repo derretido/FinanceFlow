@@ -3,7 +3,7 @@ node_modules/
 dist/
 build/
 
-# Variáveis de Ambiente (MUITO IMPORTANTE para SaaS)
+# Variáveis de Ambiente 
 .env
 .env.local
 .env.development.local
