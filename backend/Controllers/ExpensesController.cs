@@ -19,20 +19,39 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
             .Include(e => e.Category)
             .Where(e => e.UserId == UserId);
 
-        if (year.HasValue) q = q.Where(e => e.Date.Year == year.Value);
-        if (month.HasValue) q = q.Where(e => e.Date.Month == month.Value);
-        if (categoryId.HasValue) q = q.Where(e => e.CategoryId == categoryId.Value);
+        if (year.HasValue && month.HasValue)
+        {
+            var inicioMes = new DateOnly(year.Value, month.Value, 1);
+            var fimMes = inicioMes.AddMonths(1).AddDays(-1);
 
-        var list = await q.OrderByDescending(e => e.Date).ThenByDescending(e => e.CreatedAt).ToListAsync();
-        return Ok(list.Select(ToDto));
+            q = q.Where(e =>
+                // gastos do mês
+                (e.Date >= inicioMes && e.Date <= fimMes)
+
+                // OU recorrentes de meses anteriores
+                || (e.IsRecurring && e.Date <= fimMes)
+            );
+        }
+
+        if (categoryId.HasValue)
+            q = q.Where(e => e.CategoryId == categoryId.Value);
+
+        var list = await q
+            .OrderByDescending(e => e.Date)
+            .ThenByDescending(e => e.CreatedAt)
+            .ToListAsync();
+
+        return Ok(list.Select(e => ToDto(e, year, month)));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ExpenseDto>> Get(int id)
     {
-        var e = await db.Expenses.Include(e => e.Category)
+        var e = await db.Expenses
+            .Include(e => e.Category)
             .FirstOrDefaultAsync(e => e.Id == id && e.UserId == UserId);
-        return e == null ? NotFound() : Ok(ToDto(e));
+
+        return e == null ? NotFound() : Ok(ToDto(e, null, null));
     }
 
     [HttpPost]
@@ -50,19 +69,24 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
             IsRecurring = req.IsRecurring,
             UserId = UserId
         };
+
         db.Expenses.Add(expense);
         await db.SaveChangesAsync();
+
         await alerts.CheckAndCreateAlertsAsync(UserId, req.Date.Year, req.Date.Month);
 
         await db.Entry(expense).Reference(e => e.Category).LoadAsync();
-        return CreatedAtAction(nameof(Get), new { id = expense.Id }, ToDto(expense));
+
+        return CreatedAtAction(nameof(Get), new { id = expense.Id }, ToDto(expense, null, null));
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<ExpenseDto>> Update(int id, UpdateExpenseRequest req)
     {
-        var expense = await db.Expenses.Include(e => e.Category)
+        var expense = await db.Expenses
+            .Include(e => e.Category)
             .FirstOrDefaultAsync(e => e.Id == id && e.UserId == UserId);
+
         if (expense == null) return NotFound();
 
         expense.Description = req.Description;
@@ -70,25 +94,54 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
         expense.Date = req.Date;
         expense.CategoryId = req.CategoryId;
         expense.IsRecurring = req.IsRecurring;
+
         await db.SaveChangesAsync();
+
         await alerts.CheckAndCreateAlertsAsync(UserId, req.Date.Year, req.Date.Month);
 
         await db.Entry(expense).Reference(e => e.Category).LoadAsync();
-        return Ok(ToDto(expense));
+
+        return Ok(ToDto(expense, null, null));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var expense = await db.Expenses.FirstOrDefaultAsync(e => e.Id == id && e.UserId == UserId);
+        var expense = await db.Expenses
+            .FirstOrDefaultAsync(e => e.Id == id && e.UserId == UserId);
+
         if (expense == null) return NotFound();
+
         db.Expenses.Remove(expense);
         await db.SaveChangesAsync();
+
         return NoContent();
     }
 
-    private static ExpenseDto ToDto(Expense e) => new(
-        e.Id, e.Description, e.Amount, e.Date,
-        new CategoryDto(e.Category.Id, e.Category.Name, e.Category.Icon, e.Category.Color, e.Category.IsSystem),
-        e.IsRecurring, e.CreatedAt);
+    private static ExpenseDto ToDto(Expense e, int? year, int? month)
+    {
+        var date = e.Date;
+
+        if (e.IsRecurring && year.HasValue && month.HasValue)
+        {
+            var day = Math.Min(e.Date.Day, DateTime.DaysInMonth(year.Value, month.Value));
+            date = new DateOnly(year.Value, month.Value, day);
+        }
+
+        return new ExpenseDto(
+            e.Id,
+            e.Description,
+            e.Amount,
+            date,
+            new CategoryDto(
+                e.Category.Id,
+                e.Category.Name,
+                e.Category.Icon,
+                e.Category.Color,
+                e.Category.IsSystem
+            ),
+            e.IsRecurring,
+            e.CreatedAt
+        );
+    }
 }
