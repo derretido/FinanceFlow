@@ -28,11 +28,10 @@ public class ExpensesController(AppDbContext db, AlertService alerts) : BaseCont
                 // gastos do mês
                 (e.Date >= inicioMes && e.Date <= fimMes)
 
-                // OU recorrentes de meses anteriores
+                // gastos recorrentes que se aplicam ao mês
                 || (e.IsRecurring && e.Date <= fimMes)
             );
         }
-
         if (categoryId.HasValue)
             q = q.Where(e => e.CategoryId == categoryId.Value);
 
