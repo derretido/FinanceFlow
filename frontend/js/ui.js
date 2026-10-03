@@ -90,7 +90,7 @@ function badgeHTML(text, color) {
   return `<span class="badge" style="border-left-color:${esc(color)}">${esc(text)}</span>`;
 }
 
-function progressHTML(value, color = "#4ade80") {
+function progressHTML(value, color = "#15803d") {
   const pct = Math.min(100, Math.max(0, Number(value) || 0));
   return `<div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>`;
 }

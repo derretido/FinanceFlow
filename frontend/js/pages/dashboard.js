@@ -1,8 +1,8 @@
 // Dashboard: resumo do mês, gráficos e metas
 
 const CATEGORY_COLORS = [
-  "#60a5fa", "#34d399", "#f87171", "#fbbf24", "#a78bfa", "#f472b6",
-  "#818cf8", "#fb923c", "#2dd4bf", "#e879f9", "#facc15", "#94a3b8",
+  "#0369a1", "#10b981", "#dc2626", "#d97706", "#0f766e", "#84cc16",
+  "#14b8a6", "#ea580c", "#0d9488", "#65a30d", "#ca8a04", "#64748b",
 ];
 
 function renderDashboard(el) {
@@ -76,10 +76,10 @@ function paintDashboard(body, data) {
     : "";
 
   const stats = `<div class="grid grid-4">
-    ${statCardHTML({ label: "Salário", value: fmtBRL(b.salary), sub: "entrada do mês", icon: "💵", accent: "#4ade80" })}
-    ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% do salário`, icon: "📤", accent: "#f87171" })}
-    ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#a78bfa" })}
-    ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#fbbf24" : "#f87171" })}
+    ${statCardHTML({ label: "Salário", value: fmtBRL(b.salary), sub: "entrada do mês", icon: "💵", accent: "#15803d" })}
+    ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% do salário`, icon: "📤", accent: "#dc2626" })}
+    ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#0f766e" })}
+    ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
 
   const split = cardHTML(`<div class="card-body">
@@ -87,16 +87,16 @@ function paintDashboard(body, data) {
     <div class="split-bar">
       ${
         b.salary > 0
-          ? `<div style="width:${Math.min(100, b.spendingPercent)}%;background:#f87171">${b.spendingPercent > 8 ? `${b.spendingPercent}%` : ""}</div>
-              <div style="width:${Math.max(0, Math.min(100 - b.spendingPercent, invPct))}%;background:#a78bfa">${invPct > 8 ? `${invPct.toFixed(0)}%` : ""}</div>
-              <div style="flex:1;background:rgba(34,197,94,0.3)"></div>`
+          ? `<div style="width:${Math.min(100, b.spendingPercent)}%;background:#dc2626">${b.spendingPercent > 8 ? `${b.spendingPercent}%` : ""}</div>
+              <div style="width:${Math.max(0, Math.min(100 - b.spendingPercent, invPct))}%;background:#0f766e">${invPct > 8 ? `${invPct.toFixed(0)}%` : ""}</div>
+              <div style="flex:1;background:rgba(21,128,61,0.18)"></div>`
           : ""
       }
     </div>
     <div class="legend">
-      <span><span class="legend-dot" style="background:#f87171"></span>Gastos</span>
-      <span><span class="legend-dot" style="background:#c084fc"></span>Investimentos</span>
-      <span><span class="legend-dot" style="background:rgba(34,197,94,0.4)"></span>Saldo livre</span>
+      <span><span class="legend-dot" style="background:#dc2626"></span>Gastos</span>
+      <span><span class="legend-dot" style="background:#0f766e"></span>Investimentos</span>
+      <span><span class="legend-dot" style="background:rgba(21,128,61,0.25)"></span>Saldo livre</span>
     </div>
   </div>`);
 
@@ -139,9 +139,9 @@ function paintDashboard(body, data) {
               (g) => `<div class="goal-mini">
                 <div class="between" style="margin-bottom:8px">
                   <span style="font-weight:500;font-size:14px">${esc(g.icon)} ${esc(g.name)}</span>
-                  <span class="font-mono" style="font-size:12px;color:#c084fc">${g.progressPercent}%</span>
+                  <span class="font-mono" style="font-size:12px;color:#0f766e">${g.progressPercent}%</span>
                 </div>
-                ${progressHTML(g.progressPercent, "#a78bfa")}
+                ${progressHTML(g.progressPercent, "#0f766e")}
                 <div class="between muted" style="font-size:12px;margin-top:8px">
                   <span>${fmtBRL(g.currentAmount)}</span>
                   <span>${fmtBRL(g.targetAmount)}</span>
@@ -156,14 +156,14 @@ function paintDashboard(body, data) {
   body.innerHTML = alertsHTML + stats + split + charts + bars + goalsHTML;
 
   areaChart(body.querySelector("#trend-chart"), trend, [
-    { key: "salary", name: "Salário", color: "#4ade80" },
-    { key: "expenses", name: "Gastos", color: "#f87171" },
+    { key: "salary", name: "Salário", color: "#15803d" },
+    { key: "expenses", name: "Gastos", color: "#dc2626" },
   ]);
 
   barChart(body.querySelector("#bar-chart"), trend, [
-    { key: "expenses", name: "Gastos", color: "#f87171" },
-    { key: "investments", name: "Investimentos", color: "#a78bfa" },
-    { key: "balance", name: "Saldo", color: "#4ade80" },
+    { key: "expenses", name: "Gastos", color: "#dc2626" },
+    { key: "investments", name: "Investimentos", color: "#0f766e" },
+    { key: "balance", name: "Saldo", color: "#15803d" },
   ]);
 
   if (cats.length) {

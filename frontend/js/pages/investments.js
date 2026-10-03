@@ -1,12 +1,12 @@
 // Investimentos: aportes do mês
 
 const INVESTMENT_TYPES = {
-  "Renda Fixa": "#4ade80",
-  "Renda Variável": "#60a5fa",
-  Criptomoeda: "#fbbf24",
-  "Fundo Imobiliário": "#a78bfa",
-  Poupança: "#34d399",
-  Outros: "#94a3b8",
+  "Renda Fixa": "#15803d",
+  "Renda Variável": "#0369a1",
+  Criptomoeda: "#d97706",
+  "Fundo Imobiliário": "#0f766e",
+  Poupança: "#10b981",
+  Outros: "#64748b",
 };
 
 function renderInvestments(el) {
@@ -19,7 +19,7 @@ function renderInvestments(el) {
         <button class="btn btn-primary" id="add">${icon("plus", 15)} Adicionar</button>
       </div>
       <div class="pill row" style="display:inline-flex;align-self:flex-start;gap:24px">
-        <div><span class="muted">Total aportado: </span><span class="value" id="total" style="color:#c084fc">${fmtBRL(0)}</span></div>
+        <div><span class="muted">Total aportado: </span><span class="value" id="total" style="color:#0f766e">${fmtBRL(0)}</span></div>
         <div><span class="muted">Aportes: </span><span class="value" id="count">0</span></div>
       </div>
       <div id="list"></div>
@@ -50,7 +50,7 @@ function renderInvestments(el) {
 
     listEl.innerHTML = `<div class="grid grid-3">${list
       .map((i) => {
-        const color = INVESTMENT_TYPES[i.type] || "#888";
+        const color = INVESTMENT_TYPES[i.type] || "#6b7b73";
         return cardHTML(
           `<div class="card-body">
             <div class="between" style="align-items:flex-start;margin-bottom:12px">

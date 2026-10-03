@@ -15,7 +15,7 @@ function renderExpenses(el) {
         </div>
       </div>
       <div class="row" style="gap:16px">
-        <div class="pill"><span class="muted">Total: </span><span class="value" id="total" style="color:#f87171">${fmtBRL(0)}</span></div>
+        <div class="pill"><span class="muted">Total: </span><span class="value" id="total" style="color:#dc2626">${fmtBRL(0)}</span></div>
         <div class="pill"><span class="muted">Lançamentos: </span><span class="value" id="count">0</span></div>
       </div>
       <div class="card" id="table"></div>
@@ -66,7 +66,7 @@ function renderExpenses(el) {
             (e, i) => `<tr>
               <td style="font-weight:500">${esc(e.description)}</td>
               <td>${badgeHTML(`${e.category.icon} ${e.category.name}`, e.category.color)}</td>
-              <td class="font-mono" style="color:#f87171">${fmtBRL(e.amount)}</td>
+              <td class="font-mono" style="color:#dc2626">${fmtBRL(e.amount)}</td>
               <td class="font-mono muted" style="font-size:12px">${fmtDate(e.date)}</td>
               <td>${e.isRecurring ? '<span class="tag tag-blue">Fixo</span>' : ""}</td>
               <td><div class="td-actions">

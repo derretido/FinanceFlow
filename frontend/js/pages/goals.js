@@ -35,7 +35,7 @@ function renderGoals(el) {
     listEl.innerHTML = `<div class="grid grid-2" style="gap:20px">${list
       .map((g) => {
         const pct = Math.min(100, g.progressPercent);
-        const color = pct >= 100 ? "#4ade80" : "#a78bfa";
+        const color = pct >= 100 ? "#15803d" : "#0f766e";
         return cardHTML(`<div class="card-body">
           <div class="goal-head">
             <div class="row">

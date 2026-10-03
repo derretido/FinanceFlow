@@ -2,7 +2,7 @@
 // Todos se redesenham quando o container muda de largura e mostram tooltip ao passar o mouse.
 
 const CHART_MARGIN = { top: 8, right: 12, bottom: 24, left: 56 };
-const AXIS_TEXT = 'fill="#555" font-size="11" font-family="DM Sans, sans-serif"';
+const AXIS_TEXT = 'fill="#6b7b73" font-size="11" font-family="DM Sans, sans-serif"';
 const kFormat = (v) => `R$${(v / 1000).toFixed(0)}k`;
 
 // Chama render(largura) agora e sempre que a largura do container mudar.
@@ -44,7 +44,7 @@ function yAxis(values, width, height) {
   const svg = ticks
     .map(
       (t) => `
-      <line x1="${CHART_MARGIN.left}" x2="${width - CHART_MARGIN.right}" y1="${y(t)}" y2="${y(t)}" stroke="#2e2e2e" stroke-dasharray="3 3"/>
+      <line x1="${CHART_MARGIN.left}" x2="${width - CHART_MARGIN.right}" y1="${y(t)}" y2="${y(t)}" stroke="#dbe4df" stroke-dasharray="3 3"/>
       <text x="${CHART_MARGIN.left - 8}" y="${y(t)}" ${AXIS_TEXT} text-anchor="end" dominant-baseline="middle">${kFormat(t)}</text>`
     )
     .join("");
@@ -140,7 +140,7 @@ function areaChart(container, data, series, height = 220) {
       <svg width="${width}" height="${height}">
         <defs>${defs}</defs>
         ${grid}${areas}${labels}
-        <line class="hover-line" y1="${CHART_MARGIN.top}" y2="${height - CHART_MARGIN.bottom}" stroke="#555" visibility="hidden"/>
+        <line class="hover-line" y1="${CHART_MARGIN.top}" y2="${height - CHART_MARGIN.bottom}" stroke="#9aaba2" visibility="hidden"/>
         <g class="hover-dots"></g>
         <rect class="hover-zone" x="${CHART_MARGIN.left}" y="0" width="${plotW}" height="${height}" fill="transparent"/>
       </svg>`;
@@ -160,7 +160,7 @@ function areaChart(container, data, series, height = 220) {
       lineEl.setAttribute("x2", x(idx));
       lineEl.setAttribute("visibility", "visible");
       dots.innerHTML = series
-        .map((s) => `<circle cx="${x(idx)}" cy="${y(Number(d[s.key]) || 0)}" r="4" fill="${s.color}" stroke="#1a1a1a" stroke-width="2"/>`)
+        .map((s) => `<circle cx="${x(idx)}" cy="${y(Number(d[s.key]) || 0)}" r="4" fill="${s.color}" stroke="#ffffff" stroke-width="2"/>`)
         .join("");
       tip.show(
         tooltipRows(d.label, series.map((s) => ({ name: s.name, color: s.color, value: d[s.key] }))),
@@ -239,7 +239,7 @@ function barChart(container, data, series, height = 200) {
     chartBox.querySelectorAll(".band").forEach((rect) => {
       const d = data[rect.dataset.i];
       rect.addEventListener("mousemove", (e) => {
-        rect.setAttribute("fill", "rgba(255,255,255,0.04)");
+        rect.setAttribute("fill", "rgba(22,101,52,0.06)");
         const box = chartBox.getBoundingClientRect();
         tip.show(
           tooltipRows(d.label, series.map((s) => ({ name: s.name, color: s.color, value: d[s.key] }))),
@@ -283,7 +283,7 @@ function donutChart(container, items, { height = 200, outer = 80, inner = 50 } =
         const [x1, y1] = pt(R, a1);
         const [x2, y2] = pt(r, a1);
         const [x3, y3] = pt(r, a0);
-        return `<path data-i="${i}" d="M${x0},${y0}A${R},${R} 0 ${large} 1 ${x1},${y1}L${x2},${y2}A${r},${r} 0 ${large} 0 ${x3},${y3}Z" fill="${it.color}" stroke="#1a1a1a" stroke-width="1"/>`;
+        return `<path data-i="${i}" d="M${x0},${y0}A${R},${R} 0 ${large} 1 ${x1},${y1}L${x2},${y2}A${r},${r} 0 ${large} 0 ${x3},${y3}Z" fill="${it.color}" stroke="#ffffff" stroke-width="1"/>`;
       })
       .join("");
 
