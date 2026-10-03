@@ -1,4 +1,4 @@
-// Estrutura das páginas logadas: barra lateral + área de conteúdo.
+
 
 const NAV_LINKS = [
   { path: "/", icon: "dashboard", label: "Dashboard" },

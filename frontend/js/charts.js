@@ -1,4 +1,4 @@
-// Gráficos em SVG puro: área, barras agrupadas e rosca (donut).
+
 // Todos se redesenham quando o container muda de largura e mostram tooltip ao passar o mouse.
 
 const CHART_MARGIN = { top: 8, right: 12, bottom: 24, left: 56 };

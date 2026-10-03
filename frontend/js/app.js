@@ -1,5 +1,4 @@
-// Roteador: usa o hash da URL (#/gastos) para funcionar em qualquer servidor estático
-// e até abrindo o index.html direto no navegador.
+
 
 const ROUTES = {
   "/": renderDashboard,

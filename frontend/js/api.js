@@ -1,4 +1,4 @@
-// Cliente HTTP da API: adiciona o token e renova automaticamente quando expira (401).
+
 
 class ApiError extends Error {
   constructor(status, data) {

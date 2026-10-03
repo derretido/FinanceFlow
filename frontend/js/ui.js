@@ -1,4 +1,4 @@
-// Componentes e utilitários de interface compartilhados entre as páginas.
+
 
 // ─── Texto / formatação ──────────────────────────────────────────────────────
 function esc(value) {

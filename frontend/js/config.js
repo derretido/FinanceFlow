@@ -1,5 +1,3 @@
-// Endereço da API.
-// Local: usa a API .NET rodando na sua máquina.
 const PRODUCTION_API_URL = "https://financeflowv2-production.up.railway.app/api";
 
 const isLocal =
