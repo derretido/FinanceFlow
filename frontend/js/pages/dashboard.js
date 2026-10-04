@@ -61,7 +61,8 @@ function paintDashboard(body, data) {
   const cats = data.categorySummaries || [];
   const goals = data.activeGoals || [];
   const unreadAlerts = data.unreadAlerts || [];
-  const invPct = b.salary > 0 ? (b.totalInvestments / b.salary) * 100 : 0;
+  const income = b.totalIncome ?? b.salary;
+  const invPct = income > 0 ? (b.totalInvestments / income) * 100 : 0;
 
   const alertsHTML = unreadAlerts.length
     ? `<div class="stack" style="gap:8px">${unreadAlerts
@@ -76,17 +77,17 @@ function paintDashboard(body, data) {
     : "";
 
   const stats = `<div class="grid grid-4">
-    ${statCardHTML({ label: "Salário", value: fmtBRL(b.salary), sub: "entrada do mês", icon: "💵", accent: "#15803d" })}
-    ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% do salário`, icon: "📤", accent: "#dc2626" })}
+    ${statCardHTML({ label: "Receita", value: fmtBRL(income), sub: b.otherIncome > 0 ? `Salário ${fmtBRL(b.salary)} + outras ${fmtBRL(b.otherIncome)}` : "entrada do mês", icon: "💵", accent: "#15803d" })}
+    ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% da receita`, icon: "📤", accent: "#dc2626" })}
     ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#0f766e" })}
     ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
 
   const split = cardHTML(`<div class="card-body">
-    <div class="label" style="margin-bottom:12px">Distribuição do salário</div>
+    <div class="label" style="margin-bottom:12px">Distribuição da receita</div>
     <div class="split-bar">
       ${
-        b.salary > 0
+        income > 0
           ? `<div style="width:${Math.min(100, b.spendingPercent)}%;background:#dc2626">${b.spendingPercent > 8 ? `${b.spendingPercent}%` : ""}</div>
               <div style="width:${Math.max(0, Math.min(100 - b.spendingPercent, invPct))}%;background:#0f766e">${invPct > 8 ? `${invPct.toFixed(0)}%` : ""}</div>
               <div style="flex:1;background:rgba(21,128,61,0.18)"></div>`
@@ -155,8 +156,9 @@ function paintDashboard(body, data) {
 
   body.innerHTML = alertsHTML + stats + split + charts + bars + goalsHTML;
 
-  areaChart(body.querySelector("#trend-chart"), trend, [
-    { key: "salary", name: "Salário", color: "#15803d" },
+  const trendWithIncome = trend.map((t) => ({ ...t, income: (t.salary || 0) + (t.otherIncome || 0) }));
+  areaChart(body.querySelector("#trend-chart"), trendWithIncome, [
+    { key: "income", name: "Receita", color: "#15803d" },
     { key: "expenses", name: "Gastos", color: "#dc2626" },
   ]);
 

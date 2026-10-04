@@ -61,7 +61,7 @@ function renderAuthPage(root) {
       else await Auth.register(nameInput.value, email, password);
       navigate("/");
     } catch (err) {
-      toast.error(err.data?.message || "Erro ao autenticar");
+      toast.error(errorMessage(err, "Erro ao autenticar"));
       submit.disabled = false;
       submit.textContent = submitLabel();
     }

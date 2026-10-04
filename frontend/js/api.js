@@ -8,6 +8,14 @@ class ApiError extends Error {
   }
 }
 
+// Mensagem de erro do backend: "message", ou a lista "errors"
+function errorMessage(err, fallback) {
+  const d = err && err.data;
+  if (d && d.message) return d.message;
+  if (d && Array.isArray(d.errors) && d.errors.length) return d.errors.join(" ");
+  return fallback;
+}
+
 let refreshPromise = null;
 
 function buildUrl(path, params) {

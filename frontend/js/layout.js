@@ -2,6 +2,7 @@
 
 const NAV_LINKS = [
   { path: "/", icon: "dashboard", label: "Dashboard" },
+  { path: "/receitas", icon: "wallet", label: "Receitas" },
   { path: "/gastos", icon: "receipt", label: "Gastos" },
   { path: "/investimentos", icon: "trendingUp", label: "Investimentos" },
   { path: "/metas", icon: "target", label: "Metas" },

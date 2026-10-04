@@ -2,6 +2,7 @@
 
 const ROUTES = {
   "/": renderDashboard,
+  "/receitas": renderIncomes,
   "/gastos": renderExpenses,
   "/investimentos": renderInvestments,
   "/metas": renderGoals,
