@@ -182,6 +182,7 @@ function renderCardDetail(el, card, onBack) {
           <h1 class="page-title">${esc(card.bankIcon)} ${esc(card.nickname)}</h1>
         </div>
         <div class="row">
+          <button class="btn btn-ghost" id="balances">Informar faturas já existentes</button>
           <button class="btn btn-ghost" id="edit">${icon("pencil", 14)} Editar</button>
           <button class="btn btn-ghost" id="delete">${icon("trash", 14)} Excluir</button>
           <button class="btn btn-primary" id="purchase" ${card.isArchived ? "disabled" : ""}>${icon("plus", 15)} Nova compra</button>
@@ -216,12 +217,16 @@ function renderCardDetail(el, card, onBack) {
           <tbody>${inv.items
             .map(
               (e) => `<tr>
-                <td style="font-weight:500">${esc(e.description)}${installmentLabel(e)}</td>
+                <td style="font-weight:500">${e.isInvoiceBalance ? '<span class="tag tag-green">Saldo</span> ' : ""}${esc(e.description)}${installmentLabel(e)}</td>
                 <td class="font-mono" style="color:#dc2626">${fmtBRL(e.amount)}</td>
                 <td class="font-mono muted" style="font-size:12px">${fmtDate(e.date)}</td>
-                <td><div class="td-actions">
+                <td>${
+                  e.isInvoiceBalance
+                    ? ""
+                    : `<div class="td-actions">
                   <button class="icon-btn danger" data-del="${e.id}" data-group="${esc(e.installmentGroupId || "")}" aria-label="Remover">${icon("trash", 13)}</button>
-                </div></td>
+                </div>`
+                }</td>
               </tr>`
             )
             .join("")}</tbody>
@@ -277,6 +282,16 @@ function renderCardDetail(el, card, onBack) {
   }
 
   el.querySelector("#back").addEventListener("click", onBack);
+  el.querySelector("#balances").addEventListener("click", () =>
+    openBalancesForm(card, async () => {
+      try {
+        Object.assign(card, await api.get(`/cards/${card.id}`));
+      } catch {
+        // mantém os valores antigos do cabeçalho
+      }
+      load();
+    })
+  );
   el.querySelector("#edit").addEventListener("click", () => openCardForm(card, onBack));
   el.querySelector("#purchase").addEventListener("click", () => openPurchaseForm(card, load));
   el.querySelector("#delete").addEventListener("click", async () => {
@@ -379,4 +394,146 @@ async function openPurchaseForm(card, onSaved) {
       btn.disabled = false;
     }
   });
+}
+
+// ─── Faturas já comprometidas ────────────────────────────────────────────────
+async function openBalancesForm(card, onSaved) {
+  let saved;
+  try {
+    saved = await api.get(`/cards/${card.id}/invoice-balances`);
+  } catch (err) {
+    return toast.error(errorMessage(err, "Erro ao carregar faturas"));
+  }
+
+  const key = (y, m) => `${y}-${String(m).padStart(2, "0")}`;
+  const start = { year: card.currentInvoiceYear, month: card.currentInvoiceMonth };
+  const startIndex = start.year * 12 + start.month - 1;
+  const MAX_MONTHS = 36;
+
+  // Estado de edição por mês; começa com o que já foi salvo
+  const savedByKey = new Map(saved.map((b) => [key(b.year, b.month), b]));
+  const edits = new Map(saved.map((b) => [key(b.year, b.month), { amount: String(b.amount), countInBudget: b.countInBudget }]));
+  const savedTotal = saved.reduce((sum, b) => sum + b.amount, 0);
+
+  const lastSaved = saved.reduce((max, b) => Math.max(max, b.year * 12 + b.month - 1), startIndex);
+  let endIndex = Math.min(Math.max(lastSaved, startIndex + 11), startIndex + MAX_MONTHS - 1);
+
+  const monthValue = (idx) => `${Math.floor(idx / 12)}-${String((idx % 12) + 1).padStart(2, "0")}`;
+
+  const { el: modal, close } = openModal(
+    "Faturas já comprometidas",
+    `<div class="form">
+      <p class="muted" style="font-size:13px;margin:0">
+        Informe o valor que já está comprometido em cada fatura (parcelas e compras pendentes).
+        Esses valores ocupam o limite e aparecem na fatura, mas não na lista de Gastos.
+      </p>
+      <div class="field"><label>Até a fatura de</label>
+        <input id="end" type="month" min="${monthValue(startIndex)}" max="${monthValue(startIndex + MAX_MONTHS - 1)}" value="${monthValue(endIndex)}" />
+      </div>
+      <div class="pill" id="summary"></div>
+      <p class="muted" style="font-size:12px;margin:0">
+        <strong>Contar no orçamento:</strong> marque nos meses futuros, para o valor entrar nos gastos do mês.
+        Deixe desmarcado no mês atual se você já lançou essas compras à mão, para não duplicar.
+      </p>
+      <div class="table-wrap" style="max-height:320px;overflow:auto"><table>
+        <thead><tr><th>Fatura</th><th>Valor (R$)</th><th>Contar no orçamento</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-block" id="save">Salvar</button>
+        <button class="btn btn-ghost" data-close>Cancelar</button>
+      </div>
+    </div>`
+  );
+
+  const rowsEl = modal.querySelector("#rows");
+  const summary = modal.querySelector("#summary");
+
+  const typedTotal = () =>
+    [...edits.entries()]
+      .filter(([k]) => {
+        const [y, m] = k.split("-").map(Number);
+        const idx = y * 12 + m - 1;
+        return idx >= startIndex && idx <= endIndex;
+      })
+      .reduce((sum, [, e]) => sum + (parseFloat(e.amount) || 0), 0);
+
+  function paintSummary() {
+    const total = typedTotal();
+    // Disponível sem os saldos já salvos, menos o que está digitado agora
+    const remaining = card.availableLimit + savedTotal - total;
+    summary.innerHTML = `<span class="muted">Total comprometido: </span><span class="value">${fmtBRL(total)}</span>
+      <span class="muted"> · Limite ${fmtBRL(card.limit)} · Sobra </span>
+      <span class="value" style="color:${remaining < 0 ? "#dc2626" : "#15803d"}">${fmtBRL(remaining)}</span>`;
+  }
+
+  function paintRows() {
+    let html = "";
+    for (let idx = startIndex; idx <= endIndex; idx++) {
+      const y = Math.floor(idx / 12);
+      const m = (idx % 12) + 1;
+      const k = key(y, m);
+      const e = edits.get(k) || { amount: "", countInBudget: idx > startIndex };
+      html += `<tr data-key="${k}">
+        <td class="font-mono">${String(m).padStart(2, "0")}/${y}</td>
+        <td><input type="number" min="0" step="0.01" data-amount value="${esc(e.amount)}" placeholder="0,00" style="width:130px" /></td>
+        <td><input type="checkbox" data-budget ${e.countInBudget ? "checked" : ""} /></td>
+      </tr>`;
+    }
+    rowsEl.innerHTML = html;
+    paintSummary();
+  }
+
+  rowsEl.addEventListener("input", (ev) => {
+    const tr = ev.target.closest("tr");
+    if (!tr) return;
+    edits.set(tr.dataset.key, {
+      amount: tr.querySelector("[data-amount]").value,
+      countInBudget: tr.querySelector("[data-budget]").checked,
+    });
+    paintSummary();
+  });
+
+  modal.querySelector("#end").addEventListener("change", (ev) => {
+    const [y, m] = ev.target.value.split("-").map(Number);
+    if (!y || !m) return;
+    endIndex = Math.min(Math.max(y * 12 + m - 1, startIndex), startIndex + MAX_MONTHS - 1);
+    paintRows();
+  });
+
+  modal.querySelector("#save").addEventListener("click", async () => {
+    const btn = modal.querySelector("#save");
+    const items = [];
+    for (let idx = startIndex; idx <= endIndex; idx++) {
+      const year = Math.floor(idx / 12);
+      const month = (idx % 12) + 1;
+      const k = key(year, month);
+      const e = edits.get(k) || { amount: "", countInBudget: idx > startIndex };
+      const amount = parseFloat(e.amount) || 0;
+      const prev = savedByKey.get(k);
+
+      if (amount < 0) return toast.error("Valor da fatura inválido.");
+      if (prev) {
+        // Saldo existente: envia se mudou; valor zerado remove
+        if (amount !== prev.amount || (amount > 0 && e.countInBudget !== prev.countInBudget))
+          items.push({ year, month, amount, countInBudget: e.countInBudget });
+      } else if (amount > 0) {
+        items.push({ year, month, amount, countInBudget: e.countInBudget });
+      }
+    }
+    if (!items.length) return toast.error("Nenhuma alteração para salvar");
+
+    btn.disabled = true;
+    try {
+      await api.put(`/cards/${card.id}/invoice-balances`, { items });
+      toast.success("Faturas salvas!");
+      close();
+      onSaved();
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao salvar faturas"));
+      btn.disabled = false;
+    }
+  });
+
+  paintRows();
 }
