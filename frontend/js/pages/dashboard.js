@@ -80,7 +80,7 @@ function paintDashboard(body, data) {
     ${statCardHTML({ label: "Receita", value: fmtBRL(income), sub: b.otherIncome > 0 ? `Salário ${fmtBRL(b.salary)} + outras ${fmtBRL(b.otherIncome)}` : "entrada do mês", icon: "💵", accent: "#15803d" })}
     ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% da receita`, icon: "📤", accent: "#dc2626" })}
     ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#0f766e" })}
-    ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
+    ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: b.goalDeposits > 0 ? `Guardado em metas: ${fmtBRL(b.goalDeposits)}` : "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
 
   const split = cardHTML(`<div class="card-body">

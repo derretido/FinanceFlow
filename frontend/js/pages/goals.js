@@ -2,7 +2,50 @@
 
 const GOAL_ICONS = ["🎯", "🏠", "🚗", "✈️", "💍", "📱", "💻", "🎓", "🏖️", "💰", "🏋️", "🎮"];
 
+const GOAL_STATUS = {
+  completed: { label: "Concluída ✓", tag: "tag-green" },
+  on_track: { label: "No ritmo", tag: "tag-green" },
+  behind: { label: "Atrasada", tag: "tag-yellow" },
+  overdue: { label: "Prazo vencido", tag: "tag-red" },
+};
+
+// "2027-08-01" → "08/2027"
+const fmtMonthYear = (iso) => String(iso || "").slice(0, 7).split("-").reverse().join("/");
+
+// Bloco de planejamento da meta: tudo calculado pelo backend
+function goalPlanHTML(g) {
+  if (g.isCompleted) return "";
+  const parts = [];
+
+  if (g.deadline) {
+    parts.push(
+      `<div>Guarde <strong>${fmtBRL(g.requiredMonthly)}</strong> por mês <span class="muted">· faltam ${g.monthsLeft} ${g.monthsLeft === 1 ? "mês" : "meses"}</span></div>`
+    );
+    if (g.plannedMonthly && g.plannedMeetsDeadline === false && g.projectedDate)
+      parts.push(
+        `<div class="alert-banner alert-warning" style="margin-top:8px">Com ${fmtBRL(g.plannedMonthly)} por mês você chega só em ${fmtMonthYear(g.projectedDate)}, depois do prazo.</div>`
+      );
+  } else if (g.plannedMonthly && g.projectedDate) {
+    parts.push(
+      `<div>Guardando ${fmtBRL(g.plannedMonthly)} por mês, você bate a meta em <strong>${fmtMonthYear(g.projectedDate)}</strong>.</div>`
+    );
+  } else {
+    parts.push(`<div class="muted">Quanto você consegue guardar por mês? Informe em editar para ver a previsão.</div>`);
+  }
+
+  if (g.scenarios && g.scenarios.length)
+    parts.push(
+      `<div class="muted" style="margin-top:8px;font-size:12px">${g.scenarios
+        .map((s) => `<div>Em ${s.months} meses: ${fmtBRL(s.monthly)} por mês (conclui em ${fmtMonthYear(s.date)})</div>`)
+        .join("")}</div>`
+    );
+
+  return `<div style="font-size:13px;margin-bottom:16px">${parts.join("")}</div>`;
+}
+
 function renderGoals(el) {
+  let goals = [];
+
   el.innerHTML = `
     <div class="stack">
       <div class="page-header">
@@ -19,10 +62,11 @@ function renderGoals(el) {
     try {
       const list = await api.get("/goals");
       if (!el.isConnected) return;
+      goals = list;
       paintList(list);
-    } catch {
+    } catch (err) {
       listEl.innerHTML = "";
-      toast.error("Erro ao carregar metas");
+      toast.error(errorMessage(err, "Erro ao carregar metas"));
     }
   }
 
@@ -43,10 +87,13 @@ function renderGoals(el) {
               <div>
                 <div style="font-weight:600">${esc(g.name)}</div>
                 ${g.deadline ? `<div class="muted" style="font-size:12px;margin-top:2px">até ${fmtDate(g.deadline)}</div>` : ""}
-                ${g.isCompleted ? '<span class="tag tag-green">Concluída ✓</span>' : ""}
+                ${GOAL_STATUS[g.status] ? `<span class="tag ${GOAL_STATUS[g.status].tag}">${GOAL_STATUS[g.status].label}</span>` : ""}
               </div>
             </div>
-            <button class="icon-btn danger" data-del="${g.id}" aria-label="Remover">${icon("trash", 14)}</button>
+            <div class="td-actions">
+              <button class="icon-btn" data-edit="${g.id}" aria-label="Editar">${icon("pencil", 14)}</button>
+              <button class="icon-btn danger" data-del="${g.id}" aria-label="Remover">${icon("trash", 14)}</button>
+            </div>
           </div>
           <div style="margin-bottom:12px">${progressHTML(pct, color)}</div>
           <div class="between muted font-mono" style="font-size:12px;margin-bottom:16px">
@@ -54,6 +101,8 @@ function renderGoals(el) {
             <span style="font-weight:700;color:${color}">${pct}%</span>
             <span>${fmtBRL(g.targetAmount)}</span>
           </div>
+          ${goalPlanHTML(g)}
+          ${g.status === "overdue" ? `<button class="btn btn-primary btn-full btn-sm" data-renew="${g.id}" style="margin-bottom:8px">Renovar prazo</button>` : ""}
           ${g.isCompleted ? "" : `<button class="btn btn-ghost btn-full btn-sm" data-deposit="${g.id}">+ Depositar</button>`}
         </div>`);
       })
@@ -66,33 +115,45 @@ function renderGoals(el) {
           await api.delete(`/goals/${b.dataset.del}`);
           toast.success("Removida!");
           load();
-        } catch {
-          toast.error("Erro ao remover meta");
+        } catch (err) {
+          toast.error(errorMessage(err, "Erro ao remover meta"));
         }
       })
+    );
+    const byId = (id) => goals.find((x) => String(x.id) === String(id));
+    listEl.querySelectorAll("[data-edit]").forEach((b) =>
+      b.addEventListener("click", () => openForm(byId(b.dataset.edit)))
+    );
+    listEl.querySelectorAll("[data-renew]").forEach((b) =>
+      b.addEventListener("click", () => openForm(byId(b.dataset.renew), true))
     );
     listEl.querySelectorAll("[data-deposit]").forEach((b) =>
       b.addEventListener("click", () => openDeposit(b.dataset.deposit))
     );
   }
 
-  function openForm() {
-    let selectedIcon = GOAL_ICONS[0];
+  function openForm(goal, focusDeadline = false) {
+    const f = goal || { name: "", icon: GOAL_ICONS[0], targetAmount: "", deadline: null, plannedMonthly: null };
+    let selectedIcon = f.icon;
+    const icons = GOAL_ICONS.includes(f.icon) ? GOAL_ICONS : [f.icon, ...GOAL_ICONS];
     const { el: modal, close } = openModal(
-      "Nova meta",
+      goal ? "Editar meta" : "Nova meta",
       `<div class="form">
         <div class="field"><label>Ícone</label>
           <div class="icon-picker">
-            ${GOAL_ICONS.map((ic, i) => `<button type="button" class="icon-option ${i === 0 ? "selected" : ""}" data-icon="${ic}">${ic}</button>`).join("")}
+            ${icons.map((ic) => `<button type="button" class="icon-option ${ic === f.icon ? "selected" : ""}" data-icon="${esc(ic)}">${esc(ic)}</button>`).join("")}
           </div>
         </div>
-        <div class="field"><label>Nome</label><input name="name" placeholder="Ex: Viagem, Carro..." /></div>
+        <div class="field"><label>Nome</label><input name="name" value="${esc(f.name)}" placeholder="Ex: Viagem, Carro..." /></div>
         <div class="form-2">
-          <div class="field"><label>Meta (R$)</label><input name="targetAmount" type="number" /></div>
-          <div class="field"><label>Prazo (opcional)</label><input name="deadline" type="date" /></div>
+          <div class="field"><label>Meta (R$)</label><input name="targetAmount" type="number" value="${esc(f.targetAmount)}" min="0" step="0.01" /></div>
+          <div class="field"><label>Prazo (opcional)</label><input name="deadline" type="date" min="${today()}" value="${esc(f.deadline ? String(f.deadline).slice(0, 10) : "")}" /></div>
+        </div>
+        <div class="field"><label>Quanto pretende guardar por mês (opcional)</label>
+          <input name="plannedMonthly" type="number" value="${esc(f.plannedMonthly)}" min="0" step="0.01" placeholder="0,00" />
         </div>
         <div class="form-actions">
-          <button class="btn btn-primary btn-block" id="save">Criar meta</button>
+          <button class="btn btn-primary btn-block" id="save">${goal ? "Salvar" : "Criar meta"}</button>
           <button class="btn btn-ghost" data-close>Cancelar</button>
         </div>
       </div>`
@@ -105,21 +166,31 @@ function renderGoals(el) {
       })
     );
 
+    if (focusDeadline) {
+      const d = modal.querySelector('[name="deadline"]');
+      d.value = "";
+      d.focus();
+    }
+
     const val = (name) => modal.querySelector(`[name="${name}"]`).value;
     modal.querySelector("#save").addEventListener("click", async () => {
       if (!val("name") || !val("targetAmount")) return toast.error("Preencha nome e valor");
+      if (focusDeadline && !val("deadline")) return toast.error("Informe o novo prazo");
+      const payload = {
+        name: val("name"),
+        icon: selectedIcon,
+        targetAmount: parseFloat(val("targetAmount")),
+        deadline: val("deadline") || null,
+        plannedMonthly: val("plannedMonthly") ? parseFloat(val("plannedMonthly")) : null,
+      };
       try {
-        await api.post("/goals", {
-          name: val("name"),
-          icon: selectedIcon,
-          targetAmount: parseFloat(val("targetAmount")),
-          deadline: val("deadline") || null,
-        });
-        toast.success("Meta criada!");
+        if (goal) await api.put(`/goals/${goal.id}`, payload);
+        else await api.post("/goals", payload);
+        toast.success(goal ? "Meta atualizada!" : "Meta criada!");
         close();
         load();
-      } catch {
-        toast.error("Erro ao salvar");
+      } catch (err) {
+        toast.error(errorMessage(err, "Erro ao salvar"));
       }
     });
   }
@@ -144,12 +215,12 @@ function renderGoals(el) {
         toast.success("Depósito realizado!");
         close();
         load();
-      } catch {
-        toast.error("Erro ao depositar");
+      } catch (err) {
+        toast.error(errorMessage(err, "Erro ao depositar"));
       }
     });
   }
 
-  el.querySelector("#add").addEventListener("click", openForm);
+  el.querySelector("#add").addEventListener("click", () => openForm(null));
   load();
 }

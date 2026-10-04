@@ -540,6 +540,14 @@ input[type="date"] {
   color: var(--green);
   background: rgba(21, 128, 61, 0.12);
 }
+.tag-yellow {
+  color: #b45309;
+  background: rgba(217, 119, 6, 0.14);
+}
+.tag-red {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+}
 
 /* ─── Tabela ──────────────────────────────────────────────────────────────── */
 .table-wrap {
