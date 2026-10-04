@@ -4,6 +4,7 @@ const ROUTES = {
   "/": renderDashboard,
   "/receitas": renderIncomes,
   "/gastos": renderExpenses,
+  "/cartoes": renderCards,
   "/investimentos": renderInvestments,
   "/metas": renderGoals,
   "/alertas": renderAlerts,

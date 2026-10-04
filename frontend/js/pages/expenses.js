@@ -64,7 +64,7 @@ function renderExpenses(el) {
         ${expenses
           .map(
             (e, i) => `<tr>
-              <td style="font-weight:500">${esc(e.description)}</td>
+              <td style="font-weight:500">${e.creditCardId ? icon("creditCard", 13) + " " : ""}${esc(e.description)}${installmentLabel(e)}</td>
               <td>${badgeHTML(`${e.category.icon} ${e.category.name}`, e.category.color)}</td>
               <td class="font-mono" style="color:#dc2626">${fmtBRL(e.amount)}</td>
               <td class="font-mono muted" style="font-size:12px">${fmtDate(e.date)}</td>
