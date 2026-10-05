@@ -83,6 +83,15 @@ function paintDashboard(body, data) {
     ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: b.goalDeposits > 0 ? `Guardado em metas: ${fmtBRL(b.goalDeposits)}` : "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
 
+  const paidPct = b.totalExpenses > 0 ? (b.paidExpenses / b.totalExpenses) * 100 : 0;
+  const paidCard = cardHTML(`<div class="card-body">
+    <div class="between" style="margin-bottom:12px">
+      <div class="label">Gastos pagos</div>
+      <span class="font-mono" style="font-size:13px">Pago: ${fmtBRL(b.paidExpenses)} · A pagar: ${fmtBRL(b.pendingExpenses)}</span>
+    </div>
+    ${progressHTML(paidPct, "#15803d")}
+  </div>`);
+
   const split = cardHTML(`<div class="card-body">
     <div class="label" style="margin-bottom:12px">Distribuição da receita</div>
     <div class="split-bar">
@@ -154,7 +163,7 @@ function paintDashboard(body, data) {
       </div>`)
     : "";
 
-  body.innerHTML = alertsHTML + stats + split + charts + bars + goalsHTML;
+  body.innerHTML = alertsHTML + stats + paidCard + split + charts + bars + goalsHTML;
 
   const trendWithIncome = trend.map((t) => ({ ...t, income: (t.salary || 0) + (t.otherIncome || 0) }));
   areaChart(body.querySelector("#trend-chart"), trendWithIncome, [
