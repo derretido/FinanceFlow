@@ -82,7 +82,7 @@ function paintDashboard(body, data) {
     ${statCardHTML({ label: "Pagos", value: fmtBRL(b.paidExpenses), sub: b.pendingExpenses === 0 && b.totalExpenses > 0 ? "Tudo pago" : `Falta pagar: ${fmtBRL(b.pendingExpenses)}`, icon: "✅", accent: "#15803d" })}
     ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#0f766e" })}
     ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: [
-      b.goalDeposits > 0 ? `Guardado em metas: ${fmtBRL(b.goalDeposits)}` : "o que sobrou",
+      "o que sobrou",
       ...(b.pendingExpenses > 0 ? [`Saldo previsto: ${fmtBRL(b.projectedBalance)} (se você pagar tudo que falta)`] : []),
     ], icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
