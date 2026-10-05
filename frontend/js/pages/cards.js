@@ -2,9 +2,30 @@
 
 const INVOICE_STATUS = {
   open: { label: "Aberta", tag: "tag-blue" },
-  closed: { label: "Fechada", tag: "tag-blue" },
+  closed: { label: "Fechada", tag: "tag-yellow" },
+  overdue: { label: "Atrasada", tag: "tag-red" },
   paid: { label: "Paga", tag: "tag-green" },
 };
+
+function invoiceBadgeHTML(status) {
+  const st = INVOICE_STATUS[status] || INVOICE_STATUS.open;
+  return `<span class="tag ${st.tag}">${st.label}</span>`;
+}
+
+// Linha de apoio conforme o status da fatura (datas e status vêm do backend)
+function invoiceHint(status, closingDate, dueDate, paidAt) {
+  if (status === "paid") return paidAt ? `Paga em ${fmtDate(paidAt)}` : "Paga";
+  if (status === "overdue") return `Venceu em ${fmtDate(dueDate)}`;
+  if (status === "closed") return `Vence em ${fmtDate(dueDate)}`;
+  return `Fecha em ${fmtDate(closingDate)}`;
+}
+
+// Abre o detalhe de uma fatura vindo de outra tela (ex.: dashboard)
+let pendingInvoice = null;
+function openInvoice(cardId, year, month) {
+  pendingInvoice = { cardId, year, month };
+  navigate("/cartoes");
+}
 
 function renderCards(el) {
   let showArchived = false;
@@ -24,6 +45,17 @@ function renderCards(el) {
   const body = el.querySelector("#body");
 
   async function loadList() {
+    if (pendingInvoice) {
+      const target = pendingInvoice;
+      pendingInvoice = null;
+      try {
+        const card = await api.get(`/cards/${target.cardId}`);
+        if (!el.isConnected) return;
+        return renderCardDetail(el, card, () => renderCards(el), { year: target.year, month: target.month });
+      } catch (err) {
+        toast.error(errorMessage(err, "Erro ao abrir fatura"));
+      }
+    }
     body.innerHTML = spinnerHTML();
     try {
       const cards = await api.get("/cards", { includeArchived: showArchived });
@@ -81,9 +113,10 @@ function creditCardHTML(c) {
         <span>Usado ${fmtBRL(c.usedLimit)}</span><span>Limite ${fmtBRL(c.limit)}</span>
       </div>
       <div class="between" style="font-size:13px">
-        <span class="muted">Fatura ${String(c.currentInvoiceMonth).padStart(2, "0")}/${c.currentInvoiceYear}</span>
+        <span class="muted">Fatura ${String(c.currentInvoiceMonth).padStart(2, "0")}/${c.currentInvoiceYear} ${invoiceBadgeHTML(c.currentInvoiceStatus)}</span>
         <span class="font-mono" style="font-weight:500">${fmtBRL(c.currentInvoiceTotal)}</span>
       </div>
+      <div class="muted" style="font-size:12px;margin-top:4px">${esc(invoiceHint(c.currentInvoiceStatus, c.currentInvoiceClosingDate, c.currentInvoiceDueDate, null))}</div>
     </div>
   </div>`;
 }
@@ -171,8 +204,8 @@ async function openCardForm(card, onSaved) {
 }
 
 // ─── Detalhe do cartão / fatura ──────────────────────────────────────────────
-function renderCardDetail(el, card, onBack) {
-  const state = { year: card.currentInvoiceYear, month: card.currentInvoiceMonth };
+function renderCardDetail(el, card, onBack, start) {
+  const state = start || { year: card.currentInvoiceYear, month: card.currentInvoiceMonth };
 
   el.innerHTML = `
     <div class="stack">
@@ -208,8 +241,8 @@ function renderCardDetail(el, card, onBack) {
   }
 
   function paintInvoice(inv) {
-    const st = INVOICE_STATUS[inv.status] || INVOICE_STATUS.open;
     const paid = inv.status === "paid";
+    const urgent = inv.status === "closed" || inv.status === "overdue";
 
     const rows = inv.items.length
       ? `<div class="table-wrap"><table>
@@ -240,8 +273,8 @@ function renderCardDetail(el, card, onBack) {
         ${statCardHTML({ label: "Limite disponível", value: fmtBRL(card.availableLimit), sub: `de ${fmtBRL(card.limit)}`, icon: "💳", accent: "#15803d" })}
       </div>
       <div class="row">
-        <span class="tag ${st.tag}">${st.label}</span>
-        <button class="btn btn-ghost btn-sm" id="pay">${paid ? "Desfazer pagamento" : "Marcar como paga"}</button>
+        ${invoiceBadgeHTML(inv.status)}
+        <button class="btn ${urgent ? "btn-primary" : "btn-ghost"} btn-sm" id="pay">${paid ? "Desfazer pagamento" : "Marcar como paga"}</button>
       </div>
       <div class="card">${rows}</div>
     </div>`;
@@ -331,7 +364,9 @@ async function openPurchaseForm(card, onSaved) {
       <div class="field"><label>Descrição</label><input name="description" placeholder="Ex: Geladeira" /></div>
       <div class="form-2">
         <div class="field"><label>Valor total (R$)</label><input name="amount" type="number" min="0" step="0.01" placeholder="0,00" /></div>
-        <div class="field"><label>Data</label><input name="date" type="date" value="${today()}" /></div>
+        <div class="field"><label>Data</label><input name="date" type="date" value="${today()}" />
+          <span class="muted" style="font-size:12px">Compras a partir do dia de fechamento entram na próxima fatura</span>
+        </div>
       </div>
       <div class="field"><label>Categoria</label>
         <select name="categoryId"><option value="">Selecione...</option>${categories

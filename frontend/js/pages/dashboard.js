@@ -87,6 +87,24 @@ function paintDashboard(body, data) {
     ], icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
 
+  const invoicesHTML = (data.cardInvoices || []).length
+    ? `<div class="grid grid-3">${data.cardInvoices
+        .map((inv) =>
+          cardHTML(
+            `<div class="card-body" data-invoice="${inv.cardId}" data-year="${inv.year}" data-month="${inv.month}" style="cursor:pointer">
+              <div class="label">Fatura atual</div>
+              <div class="muted" style="font-size:12px;margin:2px 0 8px">${esc(inv.cardNickname)} · ${esc(inv.bankName)}</div>
+              <div class="stat-value">${fmtBRL(inv.total)}</div>
+              <div class="muted" style="font-size:12px;margin-bottom:8px">Fatura de ${MONTHS[inv.month - 1].toLowerCase()}</div>
+              ${invoiceBadgeHTML(inv.status)}
+              <div class="stat-sub">${esc(invoiceHint(inv.status, inv.closingDate, inv.dueDate, inv.paidAt))}</div>
+            </div>`,
+            { accent: inv.bankColor }
+          )
+        )
+        .join("")}</div>`
+    : "";
+
   const split = cardHTML(`<div class="card-body">
     <div class="label" style="margin-bottom:12px">Distribuição da receita</div>
     <div class="split-bar">
@@ -158,9 +176,13 @@ function paintDashboard(body, data) {
       </div>`)
     : "";
 
-  body.innerHTML = alertsHTML + stats + split + charts + bars + goalsHTML;
+  body.innerHTML = alertsHTML + stats + invoicesHTML + split + charts + bars + goalsHTML;
 
   const trendWithIncome = trend.map((t) => ({ ...t, income: (t.salary || 0) + (t.otherIncome || 0) }));
+  body.querySelectorAll("[data-invoice]").forEach((c) =>
+    c.addEventListener("click", () => openInvoice(Number(c.dataset.invoice), Number(c.dataset.year), Number(c.dataset.month)))
+  );
+
   areaChart(body.querySelector("#trend-chart"), trendWithIncome, [
     { key: "income", name: "Receita", color: "#15803d" },
     { key: "expenses", name: "Gastos", color: "#dc2626" },
