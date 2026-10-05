@@ -23,6 +23,8 @@ function renderExpenses(el) {
         <div class="pill"><span class="muted">Total: </span><span class="value" id="total" style="color:#dc2626">${fmtBRL(0)}</span></div>
         <div class="pill"><span class="muted">Lançamentos: </span><span class="value" id="count">0</span></div>
       </div>
+      <div id="notice"></div>
+      <div class="muted" style="font-size:12px">Só gastos pagos entram no saldo. Compras no cartão contam na data da compra.</div>
       <div class="card" id="table"></div>
     </div>`;
 
@@ -45,11 +47,39 @@ function renderExpenses(el) {
       categories = cats;
       filter.innerHTML = `<option value="">Todas categorias</option>${categoryOptions(catFilter)}`;
       expenses = list;
+      paintNotice();
       paintTable();
     } catch (err) {
       table.innerHTML = "";
       toast.error(errorMessage(err, "Erro ao carregar gastos"));
     }
+  }
+
+  // Aviso único para quem já tinha gastos fixos (que começam como pendentes)
+  function paintNotice() {
+    const box = el.querySelector("#notice");
+    let seen = false;
+    try {
+      seen = localStorage.getItem("fixedPaidNoticeSeen") === "1";
+    } catch {
+      // sem storage: mostra o aviso
+    }
+    if (seen || !expenses.some((e) => e.isRecurring && !e.isPaid)) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = `<div class="alert-banner alert-info">
+      <span class="msg">Marque os gastos fixos que você já pagou neste mês para o saldo ficar correto.</span>
+      <button class="btn btn-ghost btn-sm" id="dismiss-notice">Entendi</button>
+    </div>`;
+    box.querySelector("#dismiss-notice").addEventListener("click", () => {
+      try {
+        localStorage.setItem("fixedPaidNoticeSeen", "1");
+      } catch {
+        // ignora
+      }
+      box.innerHTML = "";
+    });
   }
 
   function paintTable() {
