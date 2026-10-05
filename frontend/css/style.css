@@ -340,6 +340,9 @@ input[type="date"] {
 .grid-4 {
   grid-template-columns: repeat(2, 1fr);
 }
+.grid-5 {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
 .grid-3,
 .grid-2 {
   grid-template-columns: 1fr;

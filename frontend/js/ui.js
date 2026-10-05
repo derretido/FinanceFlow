@@ -84,7 +84,7 @@ function statCardHTML({ label, value, sub, icon: emoji, accent }) {
       <div class="stat-icon">${emoji}</div>
       <div class="label">${esc(label)}</div>
       <div class="stat-value" style="color:${accent}">${esc(value)}</div>
-      ${sub ? `<div class="stat-sub">${esc(sub)}</div>` : ""}
+      ${[].concat(sub || []).map((line) => `<div class="stat-sub">${esc(line)}</div>`).join("")}
     </div>`,
     { accent }
   );

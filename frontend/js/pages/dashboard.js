@@ -76,26 +76,16 @@ function paintDashboard(body, data) {
         .join("")}</div>`
     : "";
 
-  const stats = `<div class="grid grid-4">
+  const stats = `<div class="grid grid-5">
     ${statCardHTML({ label: "Receita", value: fmtBRL(income), sub: b.otherIncome > 0 ? `Salário ${fmtBRL(b.salary)} + outras ${fmtBRL(b.otherIncome)}` : "entrada do mês", icon: "💵", accent: "#15803d" })}
     ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% da receita`, icon: "📤", accent: "#dc2626" })}
+    ${statCardHTML({ label: "Pagos", value: fmtBRL(b.paidExpenses), sub: b.pendingExpenses === 0 && b.totalExpenses > 0 ? "Tudo pago" : `Falta pagar: ${fmtBRL(b.pendingExpenses)}`, icon: "✅", accent: "#15803d" })}
     ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#0f766e" })}
-    ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: b.goalDeposits > 0 ? `Guardado em metas: ${fmtBRL(b.goalDeposits)}` : "o que sobrou", icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
+    ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: [
+      b.goalDeposits > 0 ? `Guardado em metas: ${fmtBRL(b.goalDeposits)}` : "o que sobrou",
+      ...(b.pendingExpenses > 0 ? [`Saldo previsto: ${fmtBRL(b.projectedBalance)} (se você pagar tudo que falta)`] : []),
+    ], icon: "🏦", accent: b.balance >= 0 ? "#d97706" : "#dc2626" })}
   </div>`;
-
-  // totalExpenses = gasto efetivo; pendingExpenses = falta pagar (fora do saldo)
-  const monthTotal = (b.totalExpenses || 0) + (b.pendingExpenses || 0);
-  const paidPct = monthTotal > 0 ? (b.totalExpenses / monthTotal) * 100 : 0;
-  const paidCard = cardHTML(`<div class="card-body">
-    <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div class="label">Gastos do mês</div>
-      <span class="font-mono" style="font-size:13px">Gasto: ${fmtBRL(b.totalExpenses)} · A pagar: ${fmtBRL(b.pendingExpenses)}</span>
-    </div>
-    ${progressHTML(paidPct, "#15803d")}
-    <div class="muted" style="font-size:12px;margin-top:8px">
-      Saldo previsto: <span class="font-mono">${fmtBRL(b.projectedBalance)}</span> — se você pagar tudo que está pendente.
-    </div>
-  </div>`);
 
   const split = cardHTML(`<div class="card-body">
     <div class="label" style="margin-bottom:12px">Distribuição da receita</div>
@@ -168,7 +158,7 @@ function paintDashboard(body, data) {
       </div>`)
     : "";
 
-  body.innerHTML = alertsHTML + stats + paidCard + split + charts + bars + goalsHTML;
+  body.innerHTML = alertsHTML + stats + split + charts + bars + goalsHTML;
 
   const trendWithIncome = trend.map((t) => ({ ...t, income: (t.salary || 0) + (t.otherIncome || 0) }));
   areaChart(body.querySelector("#trend-chart"), trendWithIncome, [
