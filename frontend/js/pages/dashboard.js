@@ -76,10 +76,13 @@ function paintDashboard(body, data) {
         .join("")}</div>`
     : "";
 
+  const noticeHTML = invoiceNoticeHTML(data.cardInvoices || []);
+
   const stats = `<div class="grid grid-5">
     ${statCardHTML({ label: "Receita", value: fmtBRL(income), sub: b.otherIncome > 0 ? `Salário ${fmtBRL(b.salary)} + outras ${fmtBRL(b.otherIncome)}` : "entrada do mês", icon: "💵", accent: "#15803d" })}
     ${statCardHTML({ label: "Gastos", value: fmtBRL(b.totalExpenses), sub: `${b.spendingPercent ?? 0}% da receita`, icon: "📤", accent: "#dc2626" })}
     ${statCardHTML({ label: "Pagos", value: fmtBRL(b.paidExpenses), sub: b.pendingExpenses === 0 && b.totalExpenses > 0 ? "Tudo pago" : `Falta pagar: ${fmtBRL(b.pendingExpenses)}`, icon: "✅", accent: "#15803d" })}
+    <div data-goto="/patrimonio" style="cursor:pointer;display:contents">${statCardHTML({ label: "Patrimônio", value: fmtBRL(data.totalPatrimony), sub: "investimentos + bens", icon: "🏛️", accent: "#0369a1" })}</div>
     ${statCardHTML({ label: "Investido", value: fmtBRL(b.totalInvestments), sub: "aporte do mês", icon: "💎", accent: "#0f766e" })}
     ${statCardHTML({ label: "Saldo livre", value: fmtBRL(b.balance), sub: [
       "o que sobrou",
@@ -176,9 +179,20 @@ function paintDashboard(body, data) {
       </div>`)
     : "";
 
-  body.innerHTML = alertsHTML + stats + invoicesHTML + split + charts + bars + goalsHTML;
+  body.innerHTML = alertsHTML + noticeHTML + stats + invoicesHTML + split + charts + bars + goalsHTML;
 
   const trendWithIncome = trend.map((t) => ({ ...t, income: (t.salary || 0) + (t.otherIncome || 0) }));
+  const dismiss = body.querySelector("#dismiss-invoice-notice");
+  if (dismiss)
+    dismiss.addEventListener("click", () => {
+      try {
+        localStorage.setItem("invoiceBalanceNoticeSeen", "1");
+      } catch {
+        // ignora
+      }
+      body.querySelector("#invoice-notice").remove();
+    });
+  body.querySelectorAll("[data-goto]").forEach((c) => c.addEventListener("click", () => navigate(c.dataset.goto)));
   body.querySelectorAll("[data-invoice]").forEach((c) =>
     c.addEventListener("click", () => openInvoice(Number(c.dataset.invoice), Number(c.dataset.year), Number(c.dataset.month)))
   );
@@ -204,4 +218,19 @@ function paintDashboard(body, data) {
       }))
     );
   }
+}
+
+// Aviso único: compras no cartão só descontam do saldo livre quando a fatura é paga
+function invoiceNoticeHTML(invoices) {
+  let seen = false;
+  try {
+    seen = localStorage.getItem("invoiceBalanceNoticeSeen") === "1";
+  } catch {
+    // sem storage: mostra o aviso
+  }
+  if (seen || !invoices.some((i) => i.status !== "paid" && i.total > 0)) return "";
+  return `<div class="alert-banner alert-info" id="invoice-notice">
+    <span class="msg">O saldo livre agora desconta o cartão só quando a fatura é paga. Por isso ele pode ter aumentado.</span>
+    <button class="btn btn-ghost btn-sm" id="dismiss-invoice-notice">Entendi</button>
+  </div>`;
 }

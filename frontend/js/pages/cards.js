@@ -274,8 +274,9 @@ function renderCardDetail(el, card, onBack, start) {
       </div>
       <div class="row">
         ${invoiceBadgeHTML(inv.status)}
-        <button class="btn ${urgent ? "btn-primary" : "btn-ghost"} btn-sm" id="pay">${paid ? "Desfazer pagamento" : "Marcar como paga"}</button>
+        <button class="btn ${urgent ? "btn-primary" : "btn-ghost"} btn-sm" id="pay" title="O valor da fatura será descontado do seu saldo livre">${paid ? "Desfazer pagamento" : "Marcar como paga"}</button>
       </div>
+      ${paid ? "" : '<div class="muted" style="font-size:12px">Ao marcar como paga, o valor da fatura será descontado do seu saldo livre.</div>'}
       <div class="card">${rows}</div>
     </div>`;
 

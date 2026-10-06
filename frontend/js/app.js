@@ -6,6 +6,7 @@ const ROUTES = {
   "/gastos": renderExpenses,
   "/cartoes": renderCards,
   "/investimentos": renderInvestments,
+  "/patrimonio": renderAssets,
   "/metas": renderGoals,
   "/alertas": renderAlerts,
 };
